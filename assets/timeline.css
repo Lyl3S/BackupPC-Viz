@@ -1,0 +1,211 @@
+@import url("normalize.css");
+
+.timeline {
+    background-image: url('Vertical-timeline-1440x300.png');
+    margin: 0 0 160px 0;
+}
+
+a {
+    text-decoration: none;
+    color: #000;
+    white-space: nowrap;
+}
+
+span#help div {
+    display: none;
+    position: absolute;
+    color: #000;
+    background: rgba(238,238,238,1.0);
+    padding: 5px;
+    text-align: left;
+    max-width: 800px;
+    height: 600px;
+    z-index:10;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    border-style: double;
+    border-width: 2px;
+}
+span#help:hover div {
+    display: block;
+}
+
+img#help-icon {
+    width: 16px;
+    height: 16px;
+}
+
+span.legend {
+    padding: 0 5;
+    vertical-align: text-top;
+    top: 3px;
+}
+
+ul.events li span.linkphase {
+    position: absolute;
+    z-index:6;
+    line-height: 125%;
+}
+
+span.linkphase {
+    background: #FF00FF;
+    border: 1px solid #bb76bb;
+}
+
+span.bkup-cleanup, ul.events li.bkup-cleanup {
+    background: #AAAAAA;
+}
+
+span.bkup-incr, ul.events li.bkup-incr {
+    background: #F0E68C;
+}
+
+span.bkup-full, ul.events li.bkup-full {
+    background: #66C285;
+}
+
+span.bkup-failed, ul.events li.bkup-failed {
+    background: #FF4D4D;
+}
+
+span.bkup-canceled, ul.events li.bkup-canceled {
+    background: #47D1FF;
+}
+
+span.xfer-smb, ul.events li.xfer-smb {
+    border: 1px solid #0033FF;
+}
+
+span.xfer-rsync, ul.events li.xfer-rsync {
+    border: 1px solid #FF6600;
+}
+
+ul.events {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+hr {
+    padding: 0 0 0 0;
+}
+    
+
+.legend, .linkphase, ul.events li {
+    -webkit-border-radius: 11px;
+    -moz-border-radius: 11px;
+    border-radius: 11px;
+    background: #FFFFFF;
+    border: 1px solid #fff;
+    color: #000;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 0.6em;
+    font-weight: normal;
+    line-height: 90%;
+    margin-bottom: 1px;
+    padding: 0 0;
+    position: relative;
+    text-align: center;
+}
+
+ul.events div.date-even {
+    background-color: rgba(0,75,212,0.1);
+}
+
+ul.events div.date-even.oneday {
+    background-color: rgba(0,75,212,0.1);
+    max-width: 1440px;
+    position: relative;
+    z-index:8;
+}
+
+ul.events div.date-odd {
+    background-color: rgba(205,198,0,0.1);
+}
+
+ul.events div.date-odd.oneday {
+    background-color: rgba(205,198,0,0.1);
+    max-width: 1440px;
+    position: relative;
+    z-index:8;
+}
+
+.datelink {
+    background-color: rgba(255,255,255,0.6);
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 0.7em;
+    font-weight: normal;
+    line-height: 60%;
+}
+
+ul.events li {
+    z-index:8;
+}
+
+ul.events li em {
+    font-weight: normal;
+    font-style: normal;
+    z-index:6;
+    position: relative;
+}
+
+ul.events li:hover em {
+    font-size: 1.8em;
+    font-weight: normal;
+}
+
+ul.events li strong {
+    display: none;
+}
+
+ul.events li:hover strong {
+    display: block;
+}
+
+span.info { z-index:10; display:none; padding:4px 4px; margin-top:4px; margin-left:auto; margin-right:auto; width:20em; text-align:left; background:#DDD}
+span.info { display:none; position:relative; }
+span.info { border-radius:4px; -moz-border-radius: 4px; -webkit-border-radius: 4px; box-shadow: 5px 5px 8px #CCC; -moz-box-shadow: 5px 5px 8px #CCC; -webkit-box-shadow: 5px 5px 8px #CCC; }
+ul.events li:hover span.info { display:block; position:absolute; top:-2em; left:2em; }
+
+.tooltip {
+    text-decoration:none;
+    position:relative;
+}
+.tooltip span {
+    display:none;
+}
+.tooltip:hover span {
+    display:block;
+    position:fixed;
+    overflow:hidden;
+}
+
+#pup {
+  position:absolute;
+  z-index:200; /* aaaalways on top*/
+  font-family: "Lucida Console", Monaco, monospace;
+  padding: 3px;
+  margin-left: 10px;
+  margin-top: 5px;
+  width: 22em;
+  border: 1px solid black;
+  background-color: #DDD;
+  color: black;
+  font-size: 1.95em;
+  border-radius:4px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  box-shadow: 5px 5px 8px #CCC;
+  -moz-box-shadow: 5px 5px 8px #CCC;
+  -webkit-box-shadow: 5px 5px 8px #CCC; 
+}
+
+article, aside, figure, footer, header, hgroup, menu, nav, section { display: block; }
+#lineholder div#vertical { display:none; background-color:blue; position:absolute; }
+#NOTlineholder { position:relative; display:inline-block; overflow:hidden; }
+#horizontal{width:100%;height:1px;}
+#vertical { width:2px !important; height:100%;}
+
