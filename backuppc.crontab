@@ -1,0 +1,21 @@
+# Timelines for all backups
+#
+# A date-stamped daily log for yesterday
+2 9 * * * /usr/share/backuppc/bin/BackupPC_zcat /var/lib/backuppc/log/LOG.0.z | php /var/www/html/timelines/timeline.php > /var/www/html/timelines/archives/allbackups/daily/timeline-daily-`date -d "yesterday 13:00 " '+\%Y-\%m-\%d'`.html
+# A date-stamped weekly log generated every Friday
+2 9 * * 5 /usr/share/backuppc/bin/BackupPC_zcat /var/lib/backuppc/log/LOG.6.z /var/lib/backuppc/log/LOG.5.z /var/lib/backuppc/log/LOG.4.z /var/lib/backuppc/log/LOG.3.z /var/lib/backuppc/log/LOG.2.z /var/lib/backuppc/log/LOG.1.z /var/lib/backuppc/log/LOG.0.z | php /var/www/html/timelines/timeline.php > /var/www/html/timelines/archives/allbackups/weekly/timeline-weekly-`date -d "last Friday 13:00 " '+\%Y-\%m-\%d'`.html
+# A log for the previous day
+2 9 * * * /usr/share/backuppc/bin/BackupPC_zcat /var/lib/backuppc/log/LOG.0.z | php /var/www/html/timelines/timeline.php > /var/www/html/timelines/timeline-previous-day.html
+# A log for the previous 7 days
+2 9 * * * /usr/share/backuppc/bin/BackupPC_zcat /var/lib/backuppc/log/LOG.6.z /var/lib/backuppc/log/LOG.5.z /var/lib/backuppc/log/LOG.4.z /var/lib/backuppc/log/LOG.3.z /var/lib/backuppc/log/LOG.2.z /var/lib/backuppc/log/LOG.1.z /var/lib/backuppc/log/LOG.0.z | php /var/www/html/timelines/timeline.php > /var/www/html/timelines/timeline-previous-week.html
+#
+# Timelines for full backups
+#
+# A log of full backups for the previous 7 days
+2 9 * * * /usr/share/backuppc/bin/BackupPC_zcat /var/lib/backuppc/log/LOG.6.z /var/lib/backuppc/log/LOG.5.z /var/lib/backuppc/log/LOG.4.z /var/lib/backuppc/log/LOG.3.z /var/lib/backuppc/log/LOG.2.z /var/lib/backuppc/log/LOG.1.z /var/lib/backuppc/log/LOG.0.z | php /var/www/html/timelines/fullbackups.php > /var/www/html/timelines/fullbackups-previous-week.html
+# A log of full backups for the previous month (ie from the 25th to the 24th)
+2 9 * * * (cd /var/lib/backuppc/log; /usr/share/backuppc/bin/BackupPC_zcat `/usr/local/backuppc/bin/list-previous-month.sh` | php /var/www/html/timelines/fullbackups.php > /var/www/html/timelines/fullbackups-previous-month.html)
+# A date-stamped weekly log of full backups generated every Friday
+2 9 * * 5 /usr/share/backuppc/bin/BackupPC_zcat /var/lib/backuppc/log/LOG.6.z /var/lib/backuppc/log/LOG.5.z /var/lib/backuppc/log/LOG.4.z /var/lib/backuppc/log/LOG.3.z /var/lib/backuppc/log/LOG.2.z /var/lib/backuppc/log/LOG.1.z /var/lib/backuppc/log/LOG.0.z | php /var/www/html/timelines/fullbackups.php > /var/www/html/timelines/archives/fullbackups/weekly/fullbackups-weekly-`date -d "last Friday 13:00 " '+\%Y-\%m-\%d'`.html
+# A date-stamped monthly log of full backups generated every 1st of month
+2 9 1 * * (cd /var/lib/backuppc/log; /usr/share/backuppc/bin/BackupPC_zcat `/usr/local/backuppc/bin/list-previous-month.sh` | php /var/www/html/timelines/fullbackups.php > /var/www/html/timelines/archives/fullbackups/monthly/fullbackups-monthly-`date -d "yesterday 13:00 " '+\%Y-\%m'`.html)
