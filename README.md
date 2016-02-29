@@ -3,7 +3,7 @@
 
 A set of tools to create web pages which graphically present the BackupPC scheduler history as an interactive timeline, facilitating analysis of scheduling issues. Problems with BackupPC scheduling may arise from sub-optimal BackupPC configuration, network problems, or client problems. These are easily spotted with this visualization tool.
 
-The data for the graphs is pulled from the BackupPC log files. Either the BackupPC server or the client can be display. There are 4 independent scripts that plot different data:
+The data for the graphs is pulled from the BackupPC log files. Either the BackupPC server or the client can be displayed. There are 4 independent scripts that plot different data:
 <ul>
   <li>timeline.php - Displays data from server log</li>
   <li>full-backups.php - Displays data from server log filtered by full backups.</li>
