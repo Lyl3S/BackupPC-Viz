@@ -1,5 +1,5 @@
 # BackupPC-Viz
-<h2>A Visualizer for BackupPC schedule histories.</h2>
+<h2>A Timeline Visualizer for BackupPC Schedule Backups</h2>
 
 A set of tools to create web pages which graphically present the BackupPC scheduler history as an interactive timeline, facilitating analysis of scheduling issues. Problems with BackupPC scheduling may arise from sub-optimal BackupPC configuration, network problems, or client problems. These are easily spotted with this visualization tool.
 
