@@ -179,7 +179,7 @@ if (PHP_SAPI === 'cli') {
     $backup_day->setTime( $start_hour, 0);
 
     $bar_size = $backup_minutes;
-    if (($i == 0) || ($backups[$i]->has_start) && (($backup_start_wrapped < $last_backup_start_wrapped) || (($backup_start_minute - $last_backup_start_minute) > 1440))) {
+    if (($i == 0) || ($backups[$i]->has_start) && (($backup_start_wrapped < $last_backup_start_wrapped) || (($backup_start_minute - $last_backup_start_minute) > 1439))) {
       if ((int)$backup_day->format("j") & 1) {
         $dateparity = 'odd';
       } else {
