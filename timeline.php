@@ -17,10 +17,12 @@
 //
 // NOTE that an inaccurate entry will be displayed for a host if the log contains a record for starting a backup of a second resource, but does not contain the record for starting the backup of the first resource
 //
+// 2017-09-20 - Updated to not count pool cleaning and link only records in the count of total backups 
+//
 
 
 // class definition
-class Backup {
+class HostRecord {
     // define properties
     public $hostname;
     public $time_start;
@@ -34,6 +36,7 @@ class Backup {
     public $time_link_end;
     public $has_link_end;
 }
+$num_records = -1;
 $num_backups = -1;
 if (PHP_SAPI === 'cli') {
   $data = stream_get_contents(STDIN); //read standard input
@@ -63,7 +66,7 @@ if (PHP_SAPI === 'cli') {
     // Set the end time for all backups that haven't finished yet
     if (($pieces[2] === 'BackupPC') && ($pieces[3] === 'started,')) {
       $server_start = new DateTime(substr($line, 0, 19));
-      for ($i = 0; $i <= $num_backups; $i++) {
+      for ($i = 0; $i <= $num_records; $i++) {
         if (is_null($backups[$i]->time_end)) {
           $backups[$i]->time_end = clone $server_start;
           $backups[$i]->type = "canceled";
@@ -73,17 +76,17 @@ if (PHP_SAPI === 'cli') {
     // 2014-10-21 09:00:02 Running BackupPC_nightly -m 160 163 (pid=28869)
     // 2014-10-21 09:00:02 Running BackupPC_nightly 164 167 (pid=28870)
     } elseif (($pieces[2] === 'Running') && ($pieces[3] === 'BackupPC_nightly')) {
-      $num_backups += 1;
-      $backups[$num_backups] = new Backup();
+      $num_records += 1;
+      $backups[$num_records] = new HostRecord();
       if ($pieces[4] === '-m') {
         $hostname = 'admin-' . $pieces[5] . '-' . $pieces[6];
       } else {
         $hostname = 'admin-' . $pieces[4] . '-' . $pieces[5];
       }
-      $backups[$num_backups]->hostname = $hostname;
-      $backups[$num_backups]->time_start = new DateTime(substr($line, 0, 19));
-      $backups[$num_backups]->has_start = true;
-      $backups[$num_backups]->type = 'cleanup';
+      $backups[$num_records]->hostname = $hostname;
+      $backups[$num_records]->time_start = new DateTime(substr($line, 0, 19));
+      $backups[$num_records]->has_start = true;
+      $backups[$num_records]->type = 'cleanup';
     // Find cleanup finish records:
     // 2014-10-21 12:03:00 Finished  admin1  (BackupPC_nightly 164 167)
     // 2014-10-21 12:17:27 Finished  admin  (BackupPC_nightly -m 160 163)
@@ -93,7 +96,7 @@ if (PHP_SAPI === 'cli') {
       } else {
         $hostname = 'admin-' . $pieces[5] . '-' . substr($pieces[6], 0, -1);
       }
-      for ($i = $num_backups; $i >= 0; $i--) {
+      for ($i = $num_records; $i >= 0; $i--) {
         if ($backups[$i]->hostname === $hostname) {
           $backups[$i]->time_end = new DateTime(substr($line, 0, 19));
           $backups[$i]->has_end = true;
@@ -105,20 +108,21 @@ if (PHP_SAPI === 'cli') {
     // 2014-10-21 17:06:35 Started incr backup on suf-icollab (pid=15771, share=/)
     } elseif (($pieces[2] === 'Started') && ($pieces[4] === 'backup')) {
       $found = false;
-      for ($i = $num_backups; $i >= 0; $i--) {
+      for ($i = $num_records; $i >= 0; $i--) {
         if (($backups[$i]->hostname === $pieces[6]) && (is_null($backups[$i]->time_end))){
           $found = true;
           break;
         }
       }
       if (!$found) { 
+        $num_records += 1;
         $num_backups += 1;
-        $backups[$num_backups] = new Backup();
-        $backups[$num_backups]->hostname = $pieces[6];
-        $backups[$num_backups]->time_start = new DateTime(substr($line, 0, 19));
-        $backups[$num_backups]->has_start = true;
-        $backups[$num_backups]->type = $pieces[3];
-        $backups[$num_backups]->xfer = ((substr($line, -2, 1) === '$' ) ? 'smb' : 'rsync');
+        $backups[$num_records] = new HostRecord();
+        $backups[$num_records]->hostname = $pieces[6];
+        $backups[$num_records]->time_start = new DateTime(substr($line, 0, 19));
+        $backups[$num_records]->has_start = true;
+        $backups[$num_records]->type = $pieces[3];
+        $backups[$num_records]->xfer = ((substr($line, -2, 1) === '$' ) ? 'smb' : 'rsync');
       }
     // Find backup finished record
     // 2014-10-21 09:03:55 Finished incr backup on suf-wcheng
@@ -129,7 +133,7 @@ if (PHP_SAPI === 'cli') {
       $host = ($pieces[2] === 'Finished'? $pieces[6]: $pieces[5]);
         
       $found = false;
-      for ($i = $num_backups; $i >= 0; $i--) {
+      for ($i = $num_records; $i >= 0; $i--) {
         if ($backups[$i]->hostname === $host) {
           $found = true;
           $backups[$i]->time_end = new DateTime(substr($line, 0, 19));
@@ -141,15 +145,16 @@ if (PHP_SAPI === 'cli') {
         }
       }
       if (!$found) {
+        $num_records += 1;
         $num_backups += 1;
-        $backups[$num_backups] = new Backup();
-        $backups[$num_backups]->hostname = $host;
-        $backups[$num_backups]->time_start = $log_start;
-        $backups[$num_backups]->has_start = false;
-        $backups[$num_backups]->time_end = new DateTime(substr($line, 0, 19)); 
-        $backups[$num_backups]->has_end = true;
-        $backups[$num_backups]->type = $pieces[3];
-//var_dump($backups[$num_backups]);
+        $backups[$num_records] = new HostRecord();
+        $backups[$num_records]->hostname = $host;
+        $backups[$num_records]->time_start = $log_start;
+        $backups[$num_records]->has_start = false;
+        $backups[$num_records]->time_end = new DateTime(substr($line, 0, 19)); 
+        $backups[$num_records]->has_end = true;
+        $backups[$num_records]->type = $pieces[3];
+//var_dump($backups[$num_records]);
       }
     // Find BackupPC_link starting record
     // 2014-11-10 10:54:13 Running BackupPC_link suf-wcheng (pid=13649)
@@ -157,7 +162,7 @@ if (PHP_SAPI === 'cli') {
       $host = $pieces[4];
 
       $found = false;
-      for ($i = $num_backups; $i >= 0; $i--) {
+      for ($i = $num_records; $i >= 0; $i--) {
         if ($backups[$i]->hostname === $host) {
           // If the backup has no link end time, then this link start must be overriding any previous link start
           if (is_null($backups[$i]->time_link_end)) {
@@ -170,23 +175,23 @@ if (PHP_SAPI === 'cli') {
       }
 
       if (!$found) {
-        $num_backups += 1;
-        $backups[$num_backups] = new Backup();
-        $backups[$num_backups]->hostname = $host;
-        $backups[$num_backups]->time_start = new DateTime(substr($line, 0, 19));
-        $backups[$num_backups]->has_start = false;
-        $backups[$num_backups]->time_end = new DateTime(substr($line, 0, 19));
-        $backups[$num_backups]->has_end = false;
-        $backups[$num_backups]->type = 'unknown';
-        $backups[$num_backups]->time_link_start = new DateTime(substr($line, 0, 19));
-        $backups[$num_backups]->has_link_start = true;
+        $num_records += 1;
+        $backups[$num_records] = new HostRecord();
+        $backups[$num_records]->hostname = $host;
+        $backups[$num_records]->time_start = new DateTime(substr($line, 0, 19));
+        $backups[$num_records]->has_start = false;
+        $backups[$num_records]->time_end = new DateTime(substr($line, 0, 19));
+        $backups[$num_records]->has_end = false;
+        $backups[$num_records]->type = 'unknown';
+        $backups[$num_records]->time_link_start = new DateTime(substr($line, 0, 19));
+        $backups[$num_records]->has_link_start = true;
       }
     // Find BackupPC_link finished record
     // 2014-11-10 10:54:23 Finished suf-wcheng (BackupPC_link suf-wcheng)
     } elseif (($pieces[2] === 'Finished') && ($pieces[4] === '(BackupPC_link')) {
       $host = $pieces[3];
       $found = false;
-      for ($i = $num_backups; $i >= 0; $i--) {
+      for ($i = $num_records; $i >= 0; $i--) {
         if ($backups[$i]->hostname === $host) {
           if (is_null($backups[$i]->time_link_end)) {
             $found = true;
@@ -197,24 +202,24 @@ if (PHP_SAPI === 'cli') {
         }
       }
       if (!$found) {
-        $num_backups += 1;
-        $backups[$num_backups] = new Backup();
-        $backups[$num_backups]->hostname = $host;
-        $backups[$num_backups]->time_start = $log_start;
-        $backups[$num_backups]->has_start = false;
-        $backups[$num_backups]->time_end = $log_start;
-        $backups[$num_backups]->has_end = false;
-        $backups[$num_backups]->type = 'unknown';
-        $backups[$num_backups]->time_link_start = $log_start;
-        $backups[$num_backups]->has_link_start = false;
-        $backups[$num_backups]->time_link_end = new DateTime(substr($line, 0, 19));
-        $backups[$num_backups]->has_link_end = true;
+        $num_records += 1;
+        $backups[$num_records] = new HostRecord();
+        $backups[$num_records]->hostname = $host;
+        $backups[$num_records]->time_start = $log_start;
+        $backups[$num_records]->has_start = false;
+        $backups[$num_records]->time_end = $log_start;
+        $backups[$num_records]->has_end = false;
+        $backups[$num_records]->type = 'unknown';
+        $backups[$num_records]->time_link_start = $log_start;
+        $backups[$num_records]->has_link_start = false;
+        $backups[$num_records]->time_link_end = new DateTime(substr($line, 0, 19));
+        $backups[$num_records]->has_link_end = true;
       }
     } // end of if...elseif... search for matching record
   }
 
   // Set the end time for all backups that haven't finished yet
-  for ($i = 0; $i <= $num_backups; $i++) {
+  for ($i = 0; $i <= $num_records; $i++) {
     if (is_null($backups[$i]->time_end)) {
 //echo "\nNot finished: ", $backups[$i]->hostname;
       $backups[$i]->time_end = $log_end;
@@ -223,7 +228,7 @@ if (PHP_SAPI === 'cli') {
   }
 
   // Set the end link time for all backups that have started but haven't finished the link phase yet
-  for ($i = 0; $i <= $num_backups; $i++) {
+  for ($i = 0; $i <= $num_records; $i++) {
     if (!is_null($backups[$i]->time_link_start) && is_null($backups[$i]->time_link_end)) {
 //echo "\nNot finished: ", $backups[$i]->hostname;
       $backups[$i]->time_link_end = $log_end;
@@ -245,7 +250,7 @@ if (PHP_SAPI === 'cli') {
 <body>
 <span id="nav-buttons"> </span>
 <?php
-  echo $num_backups+1 . " backups from " . $log_start->format("r") . " to " . $log_end->format("r") . PHP_EOL;
+  echo $num_backups+1, " backups (", $num_records+1, " records) from ", $log_start->format("r"), " to ", $log_end->format("r"), PHP_EOL;
   $bkgrnd_start = clone $log_start;
   $bkgrnd_start->setTime( 9, 0);
   $graph_start = intval(((int)$bkgrnd_start->format("U") - (int)$log_start->format("U"))/60);
@@ -256,7 +261,7 @@ if (PHP_SAPI === 'cli') {
   <div id="vertical"></div>
     <ul class="events">
 <?php
-  for ($i = 0; $i <= $num_backups; $i++) {
+  for ($i = 0; $i <= $num_records; $i++) {
     $start_on_graph = $backups[$i]->time_start->diff($log_start);
     $start_on_graph = intval(((int)$backups[$i]->time_start->format("U") - (int)$log_start->format("U"))/60);
     $backup_minutes = intval(((int)$backups[$i]->time_end->format("U") - (int)$backups[$i]->time_start->format("U"))/60);
