@@ -59,9 +59,23 @@ if (PHP_SAPI === 'cli') {
   // loop through data
   foreach ($lines as $line) {
     $pieces = preg_split("/[\s]+/", $line);
+    // Find BackupPC started records
+    // 2014-10-30 09:29:31 BackupPC started, pid 1333
+    // Set the end time for all backups that haven't finished yet
+    if (($pieces[2] === 'BackupPC') && ($pieces[3] === 'started,')) {
+      $server_start = new DateTime(substr($line, 0, 19));
+      for ($i = 0; $i <= $num_backups; $i++) {
+        if (is_null($backups[$i]->time_end)) {
+          $backups[$i]->time_end = clone $server_start;
+          $backups[$i]->type = "canceled";
+        }
+        if (is_null($backups[$i]->time_link_end) && $backups[$i]->has_link_start === true) {
+          $backups[$i]->time_link_end = clone $server_start;
+        }
+      }
     // Find backup start record (there may be multiple records per backup: one for each share)
     // 2014-10-21 09:21:51 Started full backup on suf-wdoppel (pid=28948, share=c$)
-    if (($pieces[2] === 'Started')&& ($pieces[3] === 'full') && ($pieces[4] === 'backup')) {
+    } elseif (($pieces[2] === 'Started')&& ($pieces[3] === 'full') && ($pieces[4] === 'backup')) {
       $found = false;
       for ($i = $num_backups; $i >= 0; $i--) {
         if (($backups[$i]->hostname === $pieces[6]) && (is_null($backups[$i]->time_end))){
